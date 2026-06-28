@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
+import krishnaBanner from "./assets/krishna-banner.jpeg";
+import prabhupada from "./assets/prabhupada.jpeg";
 
 function App() {
 
@@ -196,17 +198,80 @@ const loginAdmin = () => {
 
     setRecording(false);
   };
+return (
+  <>
+    <div className="hero-section">
 
-  return (
+      <img
+        src={krishnaBanner}
+        alt="Radha Krishna"
+        className="hero-image"
+      />
+
+      <div className="hero-overlay">
+
+        <h1 className="main-title">
+          🎵 Hare Krishna Tune Finder
+        </h1>
+
+        <p className="subtitle">
+          AI Powered Kirtan Recognition System
+        </p>
+
+      </div>
+
+    </div>
+
     <div className="container">
 
-      <h1>🎵 Hare Krishna Tune Finder</h1>
+      <div className="features">
 
-      <hr />
+  <div className="feature-card">
+    🎤
+    <h3>Record Kirtan</h3>
+    <p>Record directly from microphone</p>
+  </div>
 
+  <div className="feature-card">
+    🎵
+    <h3>AI Matching</h3>
+    <p>Find nearest devotional tune</p>
+  </div>
+
+  <div className="feature-card">
+    📚
+    <h3>Kirtan Library</h3>
+    <p>Browse uploaded tunes</p>
+  </div>
+
+  <div className="feature-card">
+    🔐
+    <h3>Admin Panel</h3>
+    <p>Secure tune management</p>
+  </div>
+
+</div>
       {!isAdmin ? (
 
   <div>
+
+  <div className="quote-box">
+
+  <img
+    src={prabhupada}
+    alt="Prabhupada"
+    className="quote-image"
+  />
+
+  <h2>
+    "Chant Hare Krishna and be happy."
+  </h2>
+
+  <p>
+    — ŚRĪLA PRABHUPĀDA
+  </p>
+
+</div>
 
     <h2>Admin Login</h2>
 
@@ -294,7 +359,7 @@ const loginAdmin = () => {
 
       {matches.map((item, index) => (
 
-        <div key={index}>
+        <div key={index} className="match-card">
 
           <h3>{item.filename}</h3>
 
@@ -341,8 +406,35 @@ const loginAdmin = () => {
         </>
       )}
 
+      <div className="footer">
+
+  <h2>Hare Krishna Maha Mantra</h2>
+
+  <p className="mantra">
+    Hare Krishna Hare Krishna
+    <br />
+    Krishna Krishna Hare Hare
+    <br />
+    Hare Rama Hare Rama
+    <br />
+    Rama Rama Hare Hare
+  </p>
+
+  <img
+    src={prabhupada}
+    alt="Prabhupada"
+    className="footer-image"
+  />
+
+  <p>
+    Inspired by ŚRĪLA PRABHUPĀDA
+  </p>
+
+</div>
+
     </div>
-  );
+ </>); 
 }
+
 
 export default App;

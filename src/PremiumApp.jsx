@@ -1,1004 +1,601 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import "./PremiumApp.css";
+
+import hero1 from "./assets/hero1.jpeg";
+import hero2 from "./assets/hero2.jpeg";
+import hero3 from "./assets/hero3.jpeg";
+import hero4 from "./assets/hero4.jpeg";
+import hero5 from "./assets/hero5.jpeg";
+import prabhupadaImg from "./assets/prabhupada2.jpeg"; // Ensure this path is correct
+
 import {
-  Activity,
   AlertCircle,
-  BarChart3,
   CheckCircle2,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Disc3,
   Gauge,
-  Headphones,
   Library,
   LoaderCircle,
-  Menu,
   Mic,
   Music2,
   RefreshCw,
   Search,
   Shield,
   Sparkles,
+  Sun,
+  Moon,
   UploadCloud,
-  X,
-  Zap,
+  Zap
 } from "lucide-react";
-import "./App.css";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
+const pageTransition = {
+  hidden: { opacity: 0, y: 50, scale: 0.95, filter: "blur(10px)" },
+  visible: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, y: -50, scale: 0.95, filter: "blur(10px)" }
 };
+
+const heroImages = [hero1, hero2, hero3, hero4, hero5];
 
 const navLinks = [
   { label: "Home", target: "home" },
-  { label: "Tune Finder", target: "tune-finder" },
+  { label: "Tune Finder", target: "finder" },
   { label: "Library", target: "library" },
   { label: "About", target: "about" },
-  { label: "Admin", target: "admin" },
+  { label: "Admin", target: "admin" }
 ];
 
 const features = [
   {
     icon: Zap,
-    title: "Instant Recognition",
-    copy: "Capture a short devotional phrase and receive nearby tune matches in moments.",
+    title: "AI Recognition",
+    copy: "Recognize devotional tunes within seconds using intelligent audio matching."
   },
   {
     icon: Library,
-    title: "Large Tune Library",
-    copy: "Browse uploaded bhajans, kirtans, and devotional recordings from the admin library.",
+    title: "Huge Library",
+    copy: "Maintain a growing collection of Kirtans and Bhajans."
   },
   {
     icon: Gauge,
-    title: "Accurate Matching",
-    copy: "Results are ranked by similarity so the closest tune always gets the spotlight.",
-  },
+    title: "Fast Results",
+    copy: "Receive similarity results instantly after recording."
+  }
 ];
 
 const stats = [
-  { value: "500+", label: "Tunes Stored" },
-  { value: "2000+", label: "Searches" },
-  { value: "98%", label: "Recognition Accuracy" },
+  { value: "500+", label: "Bhajans" },
+  { value: "98%", label: "Accuracy" },
+  { value: "2000+", label: "Searches" }
 ];
 
 function PremiumApp() {
+  const [theme, setTheme] = useState("light");
+  const [currentImage, setCurrentImage] = useState(0);
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [tunes, setTunes] = useState([]);
   const [matches, setMatches] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [username, setUsername] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activePage, setActivePage] = useState("home");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [tuneSearch, setTuneSearch] = useState("");
   const [isLoadingTunes, setIsLoadingTunes] = useState(true);
   const [tuneLoadError, setTuneLoadError] = useState("");
-  const [recordingError, setRecordingError] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
+  // Auto-carousel timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const nextSlide = (e) => {
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev + 1) % heroImages.length);
+  };
+
+  const prevSlide = (e) => {
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
+
   const loadTunes = useCallback(async () => {
     setIsLoadingTunes(true);
     setTuneLoadError("");
-
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/tunes"
-      );
-
-      if (!response.ok) {
-        throw new Error("Unable to load tunes");
-      }
-
+      const response = await fetch("http://127.0.0.1:8000/tunes");
+      if (!response.ok) throw new Error("Unable to load tunes");
       const data = await response.json();
-
       setTunes(data.tunes || []);
     } catch (error) {
-      console.log(error);
-      setTuneLoadError("Tune library could not be loaded. Check that the backend is running.");
+      console.error(error);
+      setTuneLoadError("Unable to load devotional library.");
     } finally {
       setIsLoadingTunes(false);
     }
   }, []);
 
   useEffect(() => {
-    const loader = window.setTimeout(() => {
-      loadTunes();
-    }, 0);
-
-    return () => window.clearTimeout(loader);
+    loadTunes();
   }, [loadTunes]);
 
   useEffect(() => {
-    if (!recording) {
-      return undefined;
-    }
-
+    if (!recording) return;
     const timer = setInterval(() => {
-      setRecordingTime((seconds) => seconds + 1);
+      setRecordingTime((prev) => prev + 1);
     }, 1000);
-
     return () => clearInterval(timer);
   }, [recording]);
 
+  const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
+
   const uploadAudio = async (blob) => {
     setIsProcessing(true);
-    setRecordingError("");
-
     const formData = new FormData();
-
-    formData.append(
-      "file",
-      blob,
-      "recording.webm"
-    );
-
+    formData.append("file", blob, "recording.webm");
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/match-audio",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      const response = await fetch("http://127.0.0.1:8000/match-audio", {
+        method: "POST",
+        body: formData
+      });
       const data = await response.json();
-
       setMatches(data.matches || []);
     } catch (error) {
-      console.log(error);
-      setRecordingError("Matching failed. Please try recording again.");
-
+      console.error(error);
       alert("Matching Failed");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const loginAdmin = () => {
-    if (
-      username === "admin" &&
-      adminPassword === "harekrishna123"
-    ) {
-      setIsAdmin(true);
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => chunksRef.current.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioURL(URL.createObjectURL(blob));
+        uploadAudio(blob);
+      };
+      mediaRecorder.start();
+      setRecording(true);
+      setRecordingTime(0);
+    } catch (err) {
+      console.error(err);
+      alert("Microphone Access Failed");
+    }
+  };
 
-      alert("Admin Login Success");
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
+  const loginAdmin = () => {
+    if (username === "admin" && adminPassword === "harekrishna123") {
+      setIsAdmin(true);
     } else {
       alert("Invalid Credentials");
     }
   };
 
   const uploadTune = async () => {
-    if (!selectedFile) {
-      alert("Select MP3 First");
-
-      return;
-    }
-
-    setUploadStatus("Uploading tune...");
-
+    if (!selectedFile) return alert("Select MP3 First");
+    setUploadStatus("Uploading...");
     const formData = new FormData();
-
-    formData.append(
-      "file",
-      selectedFile
-    );
-
-    formData.append(
-      "password",
-      adminPassword
-    );
-
+    formData.append("file", selectedFile);
+    formData.append("password", adminPassword);
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/upload-tune",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      const response = await fetch("http://127.0.0.1:8000/upload-tune", {
+        method: "POST",
+        body: formData
+      });
       const data = await response.json();
-
       if (!data.success) {
-        alert(
-          data.message
-        );
-
-        return;
+        setUploadStatus("");
+        return alert(data.message);
       }
-
-      alert(
-        "Tune Uploaded: " +
-        data.filename
-      );
-
-      setUploadStatus("Tune uploaded successfully.");
+      setUploadStatus("Upload Successful");
       setSelectedFile(null);
       loadTunes();
-    } catch (error) {
-      console.log(error);
-      setUploadStatus("Upload failed. Please try again.");
-
-      alert(
-        "Upload Failed"
-      );
+    } catch (err) {
+      setUploadStatus("Upload Failed");
     }
   };
 
-  const startRecording = async () => {
-    setRecordingError("");
-
-    try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-
-      const mediaRecorder =
-        new MediaRecorder(stream);
-
-      mediaRecorderRef.current =
-        mediaRecorder;
-
-      chunksRef.current = [];
-
-      mediaRecorder.ondataavailable =
-        (event) => {
-          chunksRef.current.push(event.data);
-        };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(
-          chunksRef.current,
-          {
-            type: "audio/webm",
-          }
-        );
-
-        const url =
-          URL.createObjectURL(blob);
-
-        setAudioURL(url);
-
-        uploadAudio(blob);
-      };
-
-      mediaRecorder.start();
-
-      setRecordingTime(0);
-      setRecording(true);
-    } catch (error) {
-      console.log(error);
-      setRecordingError("Microphone access is needed to listen for a tune.");
-      alert("Microphone access failed");
-    }
-  };
-
-  const stopRecording = () => {
-    if (!mediaRecorderRef.current) {
-      return;
-    }
-
-    mediaRecorderRef.current.stop();
-
-    setRecording(false);
-  };
-
-  const openPage = (target) => {
-    setActivePage(target);
-    setMobileMenuOpen(false);
+  const openPage = (page) => {
+    setActivePage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDrop = (event) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-
-    if (file) {
-      if (!file.name.toLowerCase().endsWith(".mp3")) {
-        alert("Select MP3 First");
-        return;
-      }
-
-      setSelectedFile(file);
-      setUploadStatus("");
-    }
-  };
-
   const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = String(seconds % 60).padStart(2, "0");
-
-    return `${minutes}:${remainingSeconds}`;
+    const min = Math.floor(seconds / 60);
+    const sec = String(seconds % 60).padStart(2, "0");
+    return `${min}:${sec}`;
   };
-
-  const visibleMatches = matches.slice(0, 5);
 
   const filteredTunes = useMemo(() => {
-    const searchValue = tuneSearch.trim().toLowerCase();
-
-    if (!searchValue) {
-      return tunes;
-    }
-
-    return tunes.filter((tune) =>
-      tune.toLowerCase().includes(searchValue)
-    );
+    const value = tuneSearch.toLowerCase().trim();
+    if (!value) return tunes;
+    return tunes.filter((t) => t.toLowerCase().includes(value));
   }, [tuneSearch, tunes]);
 
-  const renderTuneEmptyState = () => {
-    if (isLoadingTunes) {
-      return (
-        <div className="empty-state is-loading">
-          <LoaderCircle className="spin-icon" size={36} />
-          <p>Loading devotional tune library...</p>
-        </div>
-      );
-    }
-
-    if (tuneLoadError) {
-      return (
-        <div className="empty-state is-error">
-          <AlertCircle size={36} />
-          <p>{tuneLoadError}</p>
-          <button className="text-button" onClick={loadTunes} type="button">
-            <RefreshCw size={16} />
-            Try Again
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="empty-state">
-        <Disc3 size={36} />
-        <p>No tunes found.</p>
-      </div>
-    );
-  };
-
   return (
-    <div className="app-shell">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
 
-      <header className="navbar">
-        <button
-          className="brand"
-          onClick={() => openPage("home")}
-          type="button"
-        >
-          <span className="brand-mark">
-            <Music2 size={22} />
-          </span>
-          <span>
-            <strong>HK Tune Finder</strong>
-            <small>Devotional recognition</small>
-          </span>
-        </button>
 
-        <nav className="desktop-nav" aria-label="Primary navigation">
-          {navLinks.map((link) => (
-            <button
-              key={link.target}
-              className={activePage === link.target ? "is-active" : ""}
-              onClick={() => openPage(link.target)}
-              type="button"
-              aria-current={activePage === link.target ? "page" : undefined}
-            >
-              {link.label}
-            </button>
-          ))}
-        </nav>
+    
+    <div className={`app-root ${theme}-mode`}>
+      {/* =========================================
+          FULL SCREEN IMAGE CAROUSEL BACKGROUND
+      ========================================== */}
+      <div className="fullscreen-carousel-container">
+        {heroImages.map((imgUrl, idx) => (
+          <img
+            key={idx}
+            src={imgUrl}
+            alt="Devotional Background"
+            className={`fullscreen-image ${idx === currentImage ? "active-image" : ""}`}
+          />
+        ))}
+        {/* Glass overlay to make 3D cards pop out and text readable */}
+        <div className="fullscreen-glass-overlay"></div>
+        
+        {/* Floating Particles in Background */}
+        <div className="floating-particles">
+          <span className="particle p1">✨</span>
+          <span className="particle p2">🪷</span>
+          <span className="particle p3">🌸</span>
+          <span className="particle p4">✨</span>
+        </div>
+      </div>
 
-        <button
-          className="menu-button"
-          onClick={() => setMobileMenuOpen((open) => !open)}
-          type="button"
-          aria-label="Toggle navigation menu"
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
-
-        {mobileMenuOpen && (
-          <motion.nav
-            className="mobile-nav"
-            aria-label="Mobile navigation"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {navLinks.map((link) => (
-              <button
-                key={link.target}
-                className={activePage === link.target ? "is-active" : ""}
-                onClick={() => openPage(link.target)}
-                type="button"
-                aria-current={activePage === link.target ? "page" : undefined}
-              >
-                {link.label}
-              </button>
-            ))}
-          </motion.nav>
-        )}
-      </header>
-
-      <main className="page-stage">
-        <AnimatePresence mode="wait">
-        {activePage === "home" && (
-        <motion.div
-          key="home"
-          className="page-view"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-        <section className="hero-section section-pad" id="home">
-          <div className="particle-field" aria-hidden="true">
-            {Array.from({ length: 18 }).map((_, index) => (
-              <span key={index} />
-            ))}
+      {/* =========================================
+          APPLICATION FOREGROUND CONTENT
+      ========================================== */}
+      <div className="app-content-layer">
+        <header className="glass-navbar">
+          <div className="logo" onClick={() => openPage("home")}>
+            <Music2 className="logo-icon-3d" size={32} />
+            <h2>Hare Krishna</h2>
           </div>
-
-          <motion.div
-            className="hero-copy"
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.65 }}
-          >
-            <span className="eyebrow">
-              <Sparkles size={16} />
-              Sacred sound search
-            </span>
-            <h1>Hare Krishna Tune Finder</h1>
-            <p>
-              Identify Hare Krishna Bhajans, Kirtans and Devotional Tunes Within Seconds
-            </p>
-            <div className="hero-actions">
-              <motion.button
-                className="primary-button"
-                onClick={() => openPage("tune-finder")}
-                type="button"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Mic size={19} />
-                Start Listening
-              </motion.button>
-              <motion.button
-                className="secondary-button"
-                onClick={() => openPage("library")}
-                type="button"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Disc3 size={19} />
-                Browse Tunes
-              </motion.button>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="hero-visual"
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.75 }}
-            aria-hidden="true"
-          >
-            <div className="orbital-ring">
-              <div className="hero-disc">
-                <Headphones size={54} />
-              </div>
-            </div>
-            <div className="wave-stack">
-              {Array.from({ length: 30 }).map((_, index) => (
-                <span key={index} style={{ "--i": index }} />
-              ))}
-            </div>
-          </motion.div>
-
-          <ChevronDown className="scroll-cue" size={28} aria-hidden="true" />
-        </section>
-        <section className="stats-section section-pad">
-          <div className="stats-grid">
-            {stats.map((stat, index) => (
-              <motion.div
-                className="stat-card"
-                key={stat.label}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.08 }}
-              >
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-        </motion.div>
-        )}
-
-        {activePage === "tune-finder" && (
-        <motion.div
-          key="tune-finder"
-          className="page-view"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-        <section className="finder-grid section-pad" id="tune-finder">
-          <motion.div
-            className="recording-panel glass-panel"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.55 }}
-          >
-            <div className="section-heading centered">
-              <span className="eyebrow">
-                <Activity size={16} />
-                Tune Finder
-              </span>
-              <h2>User Recording</h2>
-              <p>Record a short phrase from a bhajan or kirtan to begin matching.</p>
-            </div>
-
-            <div className={`mic-stage ${recording ? "is-recording" : ""}`}>
-              <motion.button
-                className="mic-button"
-                onClick={!recording ? startRecording : stopRecording}
-                type="button"
-                aria-label={!recording ? "Start recording" : "Stop recording"}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-              >
-                <Mic size={48} />
-              </motion.button>
-              <div className="mic-rings" aria-hidden="true" />
-            </div>
-
-            <div className="recording-status">
-              <strong>
-                {recording
-                  ? "Listening now"
-                  : isProcessing
-                    ? "Finding the closest devotional tunes"
-                    : "Ready to listen"}
-              </strong>
-              <span>
-                {recording
-                  ? formatTime(recordingTime)
-                  : isProcessing
-                    ? "Processing recording"
-                    : "Tap the microphone to start"}
-              </span>
-            </div>
-
-            {(recording || isProcessing) && (
-              <div className="live-wave" aria-hidden="true">
-                {Array.from({ length: 22 }).map((_, index) => (
-                  <span key={index} style={{ "--i": index }} />
-                ))}
-              </div>
-            )}
-
-            {recordingError && (
-              <div className="status-message is-error" role="alert">
-                <AlertCircle size={18} />
-                <span>{recordingError}</span>
-              </div>
-            )}
-
-            {audioURL && (
-              <motion.div
-                className="recording-playback"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <span>Your Recording</span>
-                <audio controls src={audioURL} />
-              </motion.div>
-            )}
-          </motion.div>
-
-          <motion.div
-            className="results-panel glass-panel"
-            id="results"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.55, delay: 0.08 }}
-          >
-            <div className="section-heading">
-              <span className="eyebrow">
-                <BarChart3 size={16} />
-                Top Matches
-              </span>
-              <h2>Recognition Results</h2>
-              <p>The top 5 matches appear here after recording.</p>
-            </div>
-
-            {visibleMatches.length === 0 ? (
-              <div className="empty-state">
-                <Disc3 size={36} />
-                <p>No matches yet. Start listening to discover the closest tune.</p>
-              </div>
-            ) : (
-              <div className="match-list">
-                {visibleMatches.map((item, index) => (
-                  <motion.article
-                    className={`match-card ${index === 0 ? "top-match" : ""}`}
-                    key={`${item.filename}-${index}`}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.07 }}
-                  >
-                    <div className="match-meta">
-                      <span>{index === 0 ? "Top Match" : `Match ${index + 1}`}</span>
-                      <h3>{item.filename}</h3>
-                    </div>
-                    <div className="match-score">
-                      <strong>{item.score}%</strong>
-                      <span>Similarity</span>
-                    </div>
-                    <audio
-                      controls
-                      src={
-                        "http://127.0.0.1:8000/play/" +
-                        item.filename
-                      }
-                    />
-                  </motion.article>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </section>
-        </motion.div>
-        )}
-
-        {activePage === "library" && (
-        <motion.div
-          key="library"
-          className="page-view"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-        <section className="library-section section-pad" id="library">
-          <motion.div
-            className="public-library glass-panel"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            <div className="library-hero">
-              <div className="section-heading">
-                <span className="eyebrow">
-                  <Library size={16} />
-                  Pre-installed Tunes
-                </span>
-                <h2>Tune Library</h2>
-                <p>Browse the devotional recordings already available for playback.</p>
-              </div>
-              <label className="search-field">
-                <Search size={18} />
-                <input
-                  type="search"
-                  placeholder="Search tunes"
-                  value={tuneSearch}
-                  onChange={(e) => setTuneSearch(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <div className="public-tune-grid">
-              {filteredTunes.length === 0 ? (
-                renderTuneEmptyState()
-              ) : (
-                filteredTunes.map((tune, index) => (
-                  <motion.article
-                    className="public-tune-card"
-                    key={`${tune}-${index}`}
-                    initial={{ opacity: 0, y: 14 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.04 }}
-                  >
-                    <div className="tune-art">
-                      <Disc3 size={34} />
-                    </div>
-                    <div className="tune-copy">
-                      <span>{String(index + 1).padStart(2, "0")}</span>
-                      <h3>{tune}</h3>
-                    </div>
-                    <audio
-                      controls
-                      src={
-                        "http://127.0.0.1:8000/play/" +
-                        tune
-                      }
-                    />
-                  </motion.article>
-                ))
-              )}
-            </div>
-          </motion.div>
-        </section>
-        </motion.div>
-        )}
-
-        {activePage === "about" && (
-        <motion.div
-          key="about"
-          className="page-view"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-        <section className="features-section section-pad" id="about">
-          <div className="section-heading centered narrow">
-            <span className="eyebrow">
-              <Sparkles size={16} />
-              Built for devotional music
-            </span>
-            <h2>Fast, focused, and easy to use</h2>
-          </div>
-
-          <div className="feature-grid">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-
-              return (
-                <motion.article
-                  className="feature-card glass-panel"
-                  key={feature.title}
-                  variants={fadeUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.45, delay: index * 0.08 }}
-                  whileHover={{ y: -6 }}
+          <div className="nav-controls">
+            <nav className="nav-menu">
+              {navLinks.map((item) => (
+                <button
+                  key={item.target}
+                  className={`nav-btn ${activePage === item.target ? "active-nav" : ""}`}
+                  onClick={() => openPage(item.target)}
                 >
-                  <span className="icon-badge">
-                    <Icon size={24} />
-                  </span>
-                  <h3>{feature.title}</h3>
-                  <p>{feature.copy}</p>
-                </motion.article>
-              );
-            })}
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <button className="theme-toggle-3d" onClick={toggleTheme}>
+              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
           </div>
-        </section>
-        </motion.div>
-        )}
+        </header>
 
-        {activePage === "admin" && (
-        <motion.div
-          key="admin"
-          className="page-view"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-        <section className="admin-section section-pad" id="admin">
-          <div className="section-heading centered narrow">
-            <span className="eyebrow">
-              <Shield size={16} />
-              Admin
-            </span>
-            <h2>Library Management</h2>
-            <p>Upload and review devotional tune files with the existing admin workflow.</p>
-          </div>
-
-          {!isAdmin ? (
-            <motion.div
-              className="admin-login glass-panel"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.35 }}
-            >
-              <div>
-                <h3>Admin Login</h3>
-                <p>Sign in to upload tunes and view the stored library.</p>
-              </div>
-
-              <label>
-                Username
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) =>
-                    setUsername(e.target.value)
-                  }
-                />
-              </label>
-
-              <label>
-                Password
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={adminPassword}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      loginAdmin();
-                    }
-                  }}
-                  onChange={(e) =>
-                    setAdminPassword(e.target.value)
-                  }
-                />
-              </label>
-
-              <motion.button
-                className="primary-button wide"
-                onClick={loginAdmin}
-                type="button"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Shield size={18} />
-                Login
-              </motion.button>
-            </motion.div>
-          ) : (
-            <div className="admin-dashboard">
+        <main className="main-viewport">
+          <AnimatePresence mode="wait">
+            {/* HOME PAGE */}
+            {activePage === "home" && (
               <motion.div
-                className="upload-panel glass-panel"
-                variants={fadeUp}
+                key="home"
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                animate="visible"
+                exit="exit"
+                variants={pageTransition}
+                transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+                className="page-container"
               >
-                <div className="section-heading">
-                  <span className="eyebrow">
-                    <UploadCloud size={16} />
-                    Upload
-                  </span>
-                  <h3>Admin Upload Panel</h3>
-                  <p>Add an MP3 tune to the recognition library.</p>
+                <div className="home-hero-content">
+                  <h1 className="title-3d">
+                    🦚 Hare Krishna <br /> <span className="highlight-3d">Tune Finder</span>
+                  </h1>
+                  <p className="subtitle-3d">
+                    Recognize Bhajans, Kirtans and Devotional Tunes instantly using advanced Artificial Intelligence.
+                  </p>
+                  <div className="cta-buttons">
+                    <button className="btn-3d primary-3d" onClick={() => openPage("finder")}>
+                      <Mic size={20} /> Start Finding
+                    </button>
+                    <button className="btn-3d secondary-3d" onClick={() => openPage("library")}>
+                      <Library size={20} /> Browse Library
+                    </button>
+                  </div>
+                  
+                  {/* Slider Controls attached to Hero content */}
+                  <div className="slider-controls-3d">
+                    <button onClick={prevSlide} className="slider-arrow"><ChevronLeft size={24}/></button>
+                    <div className="pips-container">
+                      {heroImages.map((_, i) => (
+                        <div key={i} className={`pip ${i === currentImage ? "pip-active" : ""}`} onClick={() => setCurrentImage(i)}></div>
+                      ))}
+                    </div>
+                    <button onClick={nextSlide} className="slider-arrow"><ChevronRight size={24}/></button>
+                  </div>
                 </div>
 
-                <label
-                  className="drop-zone"
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={handleDrop}
-                >
-                  <UploadCloud size={36} />
-                  <strong>
-                    {selectedFile ? selectedFile.name : "Drag & drop an MP3 file"}
-                  </strong>
-                  <span>or select a file from your device</span>
-                  <input
-                    type="file"
-                    accept=".mp3"
-                    onChange={(e) =>
-                      setSelectedFile(
-                        e.target.files[0]
-                      )
-                    }
-                  />
-                </label>
+                <div className="stats-grid">
+                  {stats.map((item, index) => (
+                    <div key={index} className="card-3d stat-card">
+                      <div className="card-inner-glow"></div>
+                      <h2>{item.value}</h2>
+                      <p>{item.label}</p>
+                    </div>
+                  ))}
+                </div>
 
-                {uploadStatus && (
-                  <div className="status-message" role="status">
-                    {uploadStatus.includes("successfully") ? (
-                      <CheckCircle2 size={18} />
-                    ) : (
-                      <LoaderCircle className="spin-icon" size={18} />
-                    )}
-                    <span>{uploadStatus}</span>
-                  </div>
-                )}
-
-                <motion.button
-                  className="primary-button wide"
-                  onClick={uploadTune}
-                  type="button"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <UploadCloud size={18} />
-                  Upload Tune
-                </motion.button>
+                <div className="features-header">
+                  <h2>✨ Why Choose Us?</h2>
+                </div>
+                
+                <div className="features-grid">
+                  {features.map((feature, index) => {
+                    const Icon = feature.icon;
+                    return (
+                      <div key={index} className="card-3d feature-card">
+                        <div className="card-inner-glow"></div>
+                        <div className="icon-3d-bubble">
+                          <Icon size={32} />
+                        </div>
+                        <h3>{feature.title}</h3>
+                        <p>{feature.copy}</p>
+                      </div>
+                    );
+                  })}
+                </div>
               </motion.div>
+            )}
 
+            {/* FINDER PAGE */}
+            {activePage === "finder" && (
               <motion.div
-                className="library-panel glass-panel"
-                variants={fadeUp}
+                key="finder"
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ delay: 0.08 }}
+                animate="visible"
+                exit="exit"
+                variants={pageTransition}
+                transition={{ duration: 0.5 }}
+                className="page-container split-layout"
               >
-                <div className="library-header">
-                  <div className="section-heading">
-                    <span className="eyebrow">
-                      <Library size={16} />
-                      Available Tunes
-                    </span>
-                    <h3>Tune Library</h3>
+                <div className="card-3d studio-card">
+                  <div className="card-inner-glow"></div>
+                  <h2>🎤 Recording Studio</h2>
+                  <p>Sing or play your Kirtan. Our AI will analyze the acoustic vector.</p>
+                  
+                  <div className="mic-container-3d">
+                    {recording && (
+                      <>
+                        <div className="wave-3d wave-1"></div>
+                        <div className="wave-3d wave-2"></div>
+                        <div className="wave-3d wave-3"></div>
+                      </>
+                    )}
+                    <button
+                      className={`master-mic-3d ${recording ? "is-recording" : ""}`}
+                      onClick={recording ? stopRecording : startRecording}
+                    >
+                      <Mic size={48} />
+                    </button>
                   </div>
-                  <label className="search-field">
+                  
+                  {recording && <div className="live-status-3d">⏺ RECORDING... {formatTime(recordingTime)}</div>}
+                  {isProcessing && (
+                    <div className="processing-3d">
+                      <LoaderCircle size={28} className="spin-3d" />
+                      <p>Calculating Matrices...</p>
+                    </div>
+                  )}
+                  {audioURL && (
+                    <div className="audio-playback-3d">
+                      <audio controls src={audioURL} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="card-3d studio-card">
+                  <div className="card-inner-glow"></div>
+                  <h2>🏆 Top Matches</h2>
+                  {matches.length === 0 ? (
+                    <div className="empty-state-3d">
+                      <Disc3 size={60} className="spin-3d slow" />
+                      <p>Awaiting audio input telemetry.</p>
+                    </div>
+                  ) : (
+                    <div className="matches-list">
+                      {matches.slice(0, 5).map((item, idx) => (
+                         <div className="match-item-3d" key={idx}>
+                           <div className="match-info">
+                             <h4>{item.filename}</h4>
+                             <span className="score-badge">{item.score}% Match</span>
+                           </div>
+                           <audio controls src={`http://127.0.0.1:8000/play/${item.filename}`} />
+                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* LIBRARY PAGE */}
+            {activePage === "library" && (
+              <motion.div
+                key="library"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={pageTransition}
+                transition={{ duration: 0.5 }}
+                className="page-container"
+              >
+                <div className="library-header-3d">
+                  <h2>📚 Temple Archive</h2>
+                  <div className="search-box-3d">
                     <Search size={18} />
                     <input
-                      type="search"
-                      placeholder="Search tunes"
+                      type="text"
+                      placeholder="Search archive..."
                       value={tuneSearch}
                       onChange={(e) => setTuneSearch(e.target.value)}
                     />
-                  </label>
+                  </div>
                 </div>
 
-                <div className="tune-table">
-                  {filteredTunes.length === 0 ? (
-                    renderTuneEmptyState()
-                  ) : filteredTunes.map((tune, index) => (
-                    <article className="tune-row" key={`${tune}-${index}`}>
-                      <div>
-                        <span>{String(index + 1).padStart(2, "0")}</span>
-                        <strong>{tune}</strong>
+                {isLoadingTunes ? (
+                  <div className="loading-state-3d">
+                    <LoaderCircle size={40} className="spin-3d" />
+                    <p>Accessing Cloud Database...</p>
+                  </div>
+                ) : tuneLoadError ? (
+                  <div className="error-state-3d">
+                    <AlertCircle size={40} />
+                    <p>{tuneLoadError}</p>
+                    <button className="btn-3d primary-3d" onClick={loadTunes}><RefreshCw size={16}/> Retry</button>
+                  </div>
+                ) : (
+                  <div className="library-grid-3d">
+                    {filteredTunes.map((tune, idx) => (
+                      <div className="card-3d library-item" key={idx}>
+                        <div className="card-inner-glow"></div>
+                        <Music2 size={28} className="icon-teal" />
+                        <h4>{tune}</h4>
+                        <audio controls src={`http://127.0.0.1:8000/play/${tune}`} />
                       </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
 
-                      <audio
-                        controls
-                        src={
-                          "http://127.0.0.1:8000/play/" +
-                          tune
-                        }
-                      />
-                    </article>
-                  ))}
+            {/* ABOUT PAGE */}
+            {activePage === "about" && (
+              <motion.div
+                key="about"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={pageTransition}
+                className="page-container flex-center"
+              >
+                <div className="card-3d about-card-3d">
+                  <div className="card-inner-glow"></div>
+                  <Sparkles size={50} className="icon-gold" />
+                  <h2>About the Engine</h2>
+                  <p>
+                    Fusing divine tradition with neural network artificial intelligence. Record a kirtan 
+                    and our cloud server calculates microtonal acoustic signatures against our master library in real-time.
+                  </p>
+                  <div className="checklist-3d">
+                    <div><CheckCircle2 size={18}/> High Fidelity Audio Matching</div>
+                    <div><CheckCircle2 size={18}/> Real-time Cloud Processing</div>
+                    <div><CheckCircle2 size={18}/> Preserving Devotional Culture</div>
+                    <div><CheckCircle2 size={18}/> Cross-Platform Optimization</div>
+                  </div>
                 </div>
               </motion.div>
-            </div>
-          )}
-        </section>
-        </motion.div>
-        )}
-        </AnimatePresence>
-      </main>
+            )}
 
-      <footer className="footer">
-        <div>
-          <strong>Hare Krishna Tune Finder</strong>
-          <span>Modern devotional audio recognition</span>
-        </div>
-        <nav aria-label="Footer navigation">
-          {navLinks.map((link) => (
-            <button
-              key={link.target}
-              onClick={() => openPage(link.target)}
-              type="button"
-            >
-              {link.label}
-            </button>
-          ))}
-        </nav>
-        <p>Copyright 2026 Hare Krishna Tune Finder</p>
-      </footer>
+            {/* ADMIN PAGE */}
+            {activePage === "admin" && (
+              <motion.div
+                key="admin"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={pageTransition}
+                className="page-container flex-center"
+              >
+                {!isAdmin ? (
+                  <div className="card-3d admin-card-3d">
+                    <div className="card-inner-glow"></div>
+                    <h2>🔐 Security Gateway</h2>
+                    <input
+                      className="input-3d"
+                      type="text"
+                      placeholder="Admin ID"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <input
+                      className="input-3d"
+                      type="password"
+                      placeholder="Passphrase"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
+                    <button className="btn-3d primary-3d full-width" onClick={loginAdmin}>
+                      <Shield size={18} /> Authenticate
+                    </button>
+                  </div>
+                ) : (
+                  <div className="card-3d admin-card-3d">
+                    <div className="card-inner-glow"></div>
+                    <h2>📤 Master Upload</h2>
+                    <div className="dropzone-3d">
+                      <input
+                        type="file"
+                        accept=".mp3"
+                        onChange={(e) => setSelectedFile(e.target.files[0])}
+                      />
+                      <button className="btn-3d secondary-3d full-width" onClick={uploadTune}>
+                        <UploadCloud size={18} /> Submit File
+                      </button>
+                    </div>
+                    {uploadStatus && <div className="status-badge-3d">{uploadStatus}</div>}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+
+        <footer className="footer-3d">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <h3>🦚 Hare Krishna</h3>
+              <p>Built with AI & Devotion.</p>
+            </div>
+
+            <div className="prabhupada-container">
+    <img 
+      src={prabhupadaImg} 
+      alt="Srila Prabhupada" 
+      className="prabhupada-img" 
+    />
+    <div className="prabhupada-text">
+      <p className="founder-name">HDG A.C. Bhaktivedanta Swami Srila Prabhupada</p>
+      <p className="founder-title">Founder-Acharya of ISKCON</p>
+    </div>
+  </div>
+            <div className="footer-mantra-box">
+              <p>Hare Krishna Hare Krishna<br/>Krishna Krishna Hare Hare<br/>Hare Rama Hare Rama<br/>Rama Rama Hare Hare</p>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
+
+
 
 export default PremiumApp;

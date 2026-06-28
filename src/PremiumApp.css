@@ -1,0 +1,453 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600;700&display=swap');
+
+
+/* RESET AND BASE */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent !important; /* Forces visibility */
+}
+
+.app-root {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* BACKGROUND CAROUSEL */
+.fullscreen-carousel-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10; 
+  overflow: hidden;
+}
+
+.fullscreen-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+
+  .fullscreen-image {
+  /* ... other styles ... */
+  object-fit: cover;
+  object-position: center 20%; /* Try this if "center center" is too low */
+}
+}
+
+.fullscreen-image.active-image {
+  opacity: 1;
+}
+
+.fullscreen-glass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* DARKNESS ADJUSTMENT: Change 0.4 to 0.1 for lighter */
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+/* CONTENT LAYER */
+.app-content-layer {
+  position: relative;
+  z-index: 10;
+  background: transparent; /* IMPORTANT: Do not set a background color here */
+}
+
+/* ... PASTE ALL YOUR OTHER EXISTING CSS CLASSES BELOW THIS LINE ... */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --neon-orange: #ff8c00;
+  --neon-gold: #fbc02d;
+  --neon-teal: #00e5ff;
+}
+
+/* THEME VARIABLES 
+*/
+.light-mode {
+  --text-primary: #1e130c;
+  --text-secondary: #4a382b;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+  --overlay-bg: rgba(255, 248, 235, 0.7);
+  --input-bg: rgba(255, 255, 255, 0.9);
+}
+
+.dark-mode {
+  --text-primary: #f8f0e5;
+  --text-secondary: #c2b5a7;
+  --glass-bg: rgba(15, 10, 5, 0.65);
+  --glass-border: rgba(255, 140, 0, 0.2);
+  --glass-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+  --overlay-bg: rgba(10, 5, 0, 0.75);
+  --input-bg: rgba(0, 0, 0, 0.5);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  background-color: #000;
+}
+
+.app-root {
+  min-height: 100vh;
+  position: relative;
+  transition: color 0.4s ease;
+}
+
+/* =========================================
+   1. FULL SCREEN CAROUSEL (THE MAGIC FIX)
+========================================= */
+.fullscreen-carousel-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10; /* Sent completely to the back */
+  overflow: hidden;
+}
+
+/* General setting for all hero images */
+.fullscreen-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%; /* Keeps everything slightly higher to capture faces */
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+/* Specific fix for hero3 (3rd image in your array) */
+/* Adjust the percentage if the face is still cut off */
+/* This targets only the 3rd image (hero3) in your carousel container */
+.fullscreen-carousel-container img:nth-child(3) {
+  object-position: center 20% !important; 
+}
+.fullscreen-image.active-image {
+  opacity: 1;
+}
+
+
+/* This darkens/lightens the image so your UI is readable */
+.fullscreen-glass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--overlay-bg);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(2px);
+  transition: background 0.5s ease;
+  z-index: 1;
+}
+
+/* Floating 3D Elements */
+.floating-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.particle { position: absolute; font-size: 2rem; opacity: 0.6; filter: drop-shadow(0 0 10px var(--neon-gold)); }
+.p1 { top: 15%; left: 5%; animation: floatY 6s infinite ease-in-out; }
+.p2 { top: 70%; left: 15%; animation: floatY 8s infinite ease-in-out reverse; }
+.p3 { top: 20%; right: 10%; animation: floatY 7s infinite ease-in-out 1s; }
+.p4 { bottom: 10%; right: 5%; animation: floatY 9s infinite ease-in-out reverse 1s; }
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(15deg); }
+}
+
+/* =========================================
+   2. APP CONTENT FOREGROUND (SCROLLABLE)
+========================================= */
+.app-content-layer {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NAVBAR */
+.glass-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 4rem;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; }
+.logo h2 { font-family: 'Cinzel', serif; font-weight: 900; background: linear-gradient(90deg, var(--neon-orange), var(--neon-gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.logo-icon-3d { color: var(--neon-orange); filter: drop-shadow(0 0 8px var(--neon-orange)); }
+
+.nav-controls { display: flex; gap: 1.5rem; align-items: center; }
+.nav-menu { display: flex; background: rgba(0,0,0,0.1); border-radius: 12px; padding: 0.3rem; }
+.nav-btn { background: transparent; border: none; padding: 0.6rem 1.2rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; border-radius: 8px; transition: all 0.3s; }
+.nav-btn.active-nav, .nav-btn:hover { background: var(--neon-orange); color: #fff; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4); transform: translateY(-2px); }
+.theme-toggle-3d { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--neon-orange); background: transparent; color: var(--neon-orange); cursor: pointer; display: grid; place-items: center; transition: 0.3s; }
+.theme-toggle-3d:hover { background: var(--neon-orange); color: #fff; transform: rotate(15deg) scale(1.1); box-shadow: 0 0 15px var(--neon-orange); }
+
+/* MAIN VIEWPORT */
+.main-viewport {
+  flex: 1;
+  width: 100%;
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 4rem;
+  perspective: 1200px; /* Turns on the 3D space for the cards */
+}
+
+/* =========================================
+   3. TRUE 3D GLASS CARDS
+========================================= */
+.card-3d {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+  /* THE 3D MAGIC IS HERE: */
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.card-3d:hover {
+  /* Pops off the screen and tilts */
+  transform: rotateX(4deg) rotateY(-4deg) translateY(-10px) translateZ(20px);
+  box-shadow: 0 40px 60px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 140, 0, 0.1);
+  border-color: var(--neon-orange);
+}
+
+/* Shiny hover reflection inside the card */
+.card-inner-glow {
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg) translateY(100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.card-3d:hover .card-inner-glow { transform: rotate(45deg) translateY(-100%); }
+
+/* Push child content slightly forward for depth */
+.card-3d > * { transform: translateZ(30px); }
+
+/* =========================================
+   4. HOME PAGE LAYOUT
+========================================= */
+.home-hero-content {
+  text-align: center;
+  max-width: 800px;
+  margin: 2rem auto 6rem auto;
+  transform-style: preserve-3d;
+}
+
+.title-3d { font-family: 'Cinzel', serif; font-size: 4rem; margin-bottom: 1rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+.highlight-3d { color: var(--neon-orange); text-shadow: 0 0 20px rgba(255,140,0,0.4); }
+.subtitle-3d { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; }
+
+.cta-buttons { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 3rem; }
+
+.btn-3d { display: flex; align-items: center; gap: 0.5rem; padding: 1rem 2.2rem; font-weight: 700; border-radius: 12px; border: none; cursor: pointer; color: #fff; transition: 0.2s; transform: translateZ(0); }
+.primary-3d { background: linear-gradient(135deg, var(--neon-orange), #ff4500); box-shadow: 0 6px 0 #cc3700, 0 10px 20px rgba(255, 140, 0, 0.3); }
+.secondary-3d { background: linear-gradient(135deg, var(--neon-teal), #00838f); box-shadow: 0 6px 0 #005b66, 0 10px 20px rgba(0, 172, 193, 0.3); }
+.btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 transparent, 0 4px 10px rgba(0,0,0,0.1); }
+
+/* Custom Carousel Controls placed over the background */
+.slider-controls-3d { display: flex; align-items: center; justify-content: center; gap: 2rem; background: var(--glass-bg); padding: 0.8rem 2rem; border-radius: 50px; width: fit-content; margin: 0 auto; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
+.slider-arrow { background: transparent; border: none; color: var(--text-primary); cursor: pointer; transition: 0.3s; display: grid; place-items: center; }
+.slider-arrow:hover { color: var(--neon-orange); transform: scale(1.3); }
+.pips-container { display: flex; gap: 0.5rem; }
+.pip { width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); opacity: 0.5; cursor: pointer; transition: 0.3s; }
+.pip.pip-active { background: var(--neon-orange); opacity: 1; width: 25px; border-radius: 5px; box-shadow: 0 0 10px var(--neon-orange); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 5rem; }
+.stat-card { text-align: center; }
+.stat-card h2 { font-family: 'Cinzel', serif; font-size: 3.5rem; color: var(--neon-orange); }
+
+.features-header { text-align: center; margin-bottom: 2rem; font-family: 'Cinzel', serif; font-size: 2rem; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+.icon-3d-bubble { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,140,0,0.1); border: 1px solid var(--neon-orange); display: grid; place-items: center; color: var(--neon-orange); margin: 0 auto 1.5rem auto; box-shadow: 0 0 15px rgba(255,140,0,0.2); }
+.feature-card h3 { font-size: 1.3rem; margin-bottom: 0.8rem; text-align: center; }
+.feature-card p { text-align: center; color: var(--text-secondary); line-height: 1.6; }
+
+/* =========================================
+   5. FINDER STUDIO PAGE
+========================================= */
+.split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+.studio-card h2 { font-family: 'Cinzel', serif; margin-bottom: 0.5rem; font-size: 1.8rem; }
+.studio-card p { color: var(--text-secondary); margin-bottom: 2rem; }
+
+.mic-container-3d { display: flex; justify-content: center; position: relative; height: 160px; align-items: center; }
+
+/* 3D Wave Animations */
+.wave-3d { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--neon-orange); opacity: 0; transform-style: preserve-3d; }
+.wave-1 { animation: emit 2s infinite linear; }
+.wave-2 { animation: emit 2s infinite linear 0.6s; }
+.wave-3 { animation: emit 2s infinite linear 1.2s; }
+
+@keyframes emit {
+  0% { transform: scale(1) translateZ(0px); opacity: 1; }
+  100% { transform: scale(2.5) translateZ(50px); opacity: 0; border-color: var(--neon-teal); }
+}
+
+.master-mic-3d { position: relative; z-index: 10; width: 100px; height: 100px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--neon-orange), #ff4500); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(255,140,0,0.4), inset 0 5px 10px rgba(255,255,255,0.4); transition: 0.2s; }
+.master-mic-3d:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(255,140,0,0.4); }
+.master-mic-3d.is-recording { background: linear-gradient(135deg, #d32f2f, #ff1744); box-shadow: 0 10px 30px rgba(211,47,47,0.5), inset 0 5px 10px rgba(255,255,255,0.3); animation: heartbeat 1s infinite; }
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.live-status-3d { text-align: center; margin-top: 1rem; color: #d32f2f; font-weight: bold; background: rgba(211,47,47,0.1); padding: 0.5rem; border-radius: 20px; }
+.processing-3d { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 2rem; color: var(--neon-teal); font-weight: bold; }
+.spin-3d { animation: spin 1.5s linear infinite; }
+.spin-3d.slow { animation-duration: 4s; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.audio-playback-3d { margin-top: 2rem; background: rgba(0,0,0,0.1); padding: 1rem; border-radius: 16px; }
+audio { width: 100%; height: 40px; border-radius: 20px; }
+
+.empty-state-3d { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 1rem; color: var(--text-secondary); }
+.matches-list { display: flex; flex-direction: column; gap: 1.2rem; }
+.match-item-3d { background: rgba(0,0,0,0.05); border: 1px solid var(--glass-border); padding: 1.2rem; border-radius: 16px; transition: 0.3s; }
+.match-item-3d:hover { transform: translateX(10px); border-color: var(--neon-orange); }
+.match-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.score-badge { background: rgba(46, 125, 50, 0.15); color: #4caf50; padding: 0.3rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+
+/* =========================================
+   6. LIBRARY, ABOUT & ADMIN PAGES
+========================================= */
+.library-header-3d { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+.library-header-3d h2 { font-family: 'Cinzel', serif; font-size: 2rem; }
+.search-box-3d { display: flex; align-items: center; gap: 0.8rem; background: var(--input-bg); border: 1px solid var(--glass-border); padding: 0.8rem 1.5rem; border-radius: 12px; width: 350px; }
+.search-box-3d input { border: none; background: transparent; width: 100%; outline: none; font-size: 1rem; color: var(--text-primary); font-family: inherit; }
+
+.library-grid-3d { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+.library-item { text-align: center; }
+.icon-teal { color: var(--neon-teal); margin-bottom: 1rem; }
+.library-item h4 { margin-bottom: 1rem; font-size: 1.1rem; }
+.loading-state-3d, .error-state-3d { display: flex; flex-direction: column; align-items: center; padding: 4rem; gap: 1rem; }
+
+.flex-center { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+.about-card-3d { max-width: 700px; text-align: center; }
+.icon-gold { color: var(--neon-gold); margin-bottom: 1rem; }
+.about-card-3d h2 { font-family: 'Cinzel', serif; font-size: 2.2rem; margin-bottom: 1.5rem; }
+.checklist-3d { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: left; margin-top: 2rem; }
+.checklist-3d div { display: flex; align-items: center; gap: 0.8rem; font-weight: 600; }
+.checklist-3d svg { color: #4caf50; }
+
+.admin-card-3d { width: 100%; max-width: 450px; text-align: center; }
+.admin-card-3d h2 { font-family: 'Cinzel', serif; margin-bottom: 2rem; }
+.input-3d { width: 100%; padding: 1rem 1.2rem; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 1.5rem; color: var(--text-primary); font-size: 1rem; outline: none; transition: 0.3s; }
+.input-3d:focus { border-color: var(--neon-orange); box-shadow: 0 0 10px rgba(255,140,0,0.2); }
+.full-width { width: 100%; justify-content: center; }
+.dropzone-3d { margin-bottom: 2rem; }
+.dropzone-3d input { margin-bottom: 1rem; width: 100%; }
+.status-badge-3d { margin-top: 1.5rem; padding: 1rem; background: rgba(255,140,0,0.1); color: var(--neon-orange); border-radius: 8px; font-weight: bold; }
+
+/* =========================================
+   7. FOOTER
+========================================= */
+.footer-3d { background: var(--glass-bg); -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); padding: 3rem 4rem; margin-top: 4rem; }
+.footer-grid { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+.footer-brand h3 { font-family: 'Cinzel', serif; color: var(--neon-orange); font-size: 1.5rem; }
+.footer-mantra-box { background: rgba(255,140,0,0.05); padding: 1rem 2rem; border-radius: 16px; border: 1px solid var(--neon-orange); text-align: center; font-family: 'Cinzel', serif; font-weight: bold; color: var(--neon-orange); }
+
+/* =========================================
+   8. RESPONSIVE QUERIES
+========================================= */
+@media(max-width: 1024px) {
+  .glass-navbar { padding: 1rem 2rem; }
+  .page-container { padding: 2rem; }
+  .split-layout, .stats-grid, .features-grid, .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-grid { flex-direction: column; text-align: center; gap: 2rem; }
+  .library-header-3d { flex-direction: column; gap: 1rem; align-items: stretch; }
+  .search-box-3d { width: 100%; }
+}
+
+
+.footer-prabhupada {
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 40px;
+}
+
+.prabhupada-container {
+  display: flex;
+  flex-direction: column; /* This stacks the items vertically */
+  align-items: center;    /* This centers them horizontally */
+  gap: 15px;              /* Space between image and text */
+  color: #fff;
+  text-align: center;
+}
+
+.prabhupada-img {
+  width: 120px;           /* Increased size */
+  height: 120px;          /* Increased size */
+  border-radius: 50%;
+  border: 3px solid #ff8c00; 
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Adds depth */
+}
+
+.founder-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.founder-title {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 5px 0 0 0;
+}
